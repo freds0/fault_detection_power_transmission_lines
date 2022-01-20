@@ -1,0 +1,3 @@
+--- # Application configuration - config.yaml
+preprocess:
+    driver: com.mysql.jdbc.Driver
