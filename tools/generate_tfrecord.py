@@ -30,7 +30,7 @@ flags.DEFINE_string('image_dir', '', 'Path to images')
 FLAGS = flags.FLAGS
 
 
-#def class_text_to_int(row_label):
+def class_text_to_int(row_label):
     if row_label == 'esfera_boa':
         return 1
     elif row_label == 'esfera_razoavel':
@@ -95,19 +95,29 @@ def create_tf_example(group, path):
     return tf_example
 
 
-def main(_):
-    writer = tf.python_io.TFRecordWriter(FLAGS.output_path)
-    path = os.path.join(FLAGS.image_dir)
-    examples = pd.read_csv(FLAGS.csv_input)
+def create_tf_record(csv_input, path, output_path):
+
+    examples = pd.read_csv(csv_input)
     grouped = split(examples, 'filename')
+
+    writer = tf.python_io.TFRecordWriter(output_path)
     for group in grouped:
         tf_example = create_tf_example(group, path)
         writer.write(tf_example.SerializeToString())
 
     writer.close()
-    output_path = os.path.join(os.getcwd(), FLAGS.output_path)
     print('Successfully created the TFRecords: {}'.format(output_path))
 
+
+def main(_):
+    output_path = os.path.join(os.getcwd(), output_path)
+    images_dir = FLAGS.image_dir
+    csv_filepath = FLAGS.csv_input
+
+    #
+    #path = os.path.join(FLAGS.image_dir)
+    #output_path = os.path.join(os.getcwd(), FLAGS.output_path)
+    create_tf_record(csv_filepath, images_dir, output_path)
 
 if __name__ == '__main__':
     tf.app.run()

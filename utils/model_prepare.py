@@ -15,7 +15,7 @@ models_links_dic = {
     'ssd_mobilenet_v2_320x320'                  : "http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v2_320x320_coco17_tpu-8.tar.gz"
 }
 
-class config:
+class model_config:
 
     def __init__(self, model_name, labelmap_path = '', fine_tune_checkpoint = '', num_classes = 0, train_record_path = '', test_record_path = '', batch_size = 1):
         self.model_name = model_name
@@ -25,7 +25,7 @@ class config:
         self.test_record_path = test_record_path
         self.num_classes = num_classes
         self.batch_size = batch_size
-        self.output_config = os.path.join('data', 'automatic_pipeline.config')
+        self.output_config = os.path.join('configs', 'pipeline_' + os.path.basename(self.get_folder_model()) + '.config')
 
     def get_link_model(self):
         return models_links_dic[self.model_name]
@@ -35,14 +35,14 @@ class config:
         targz_output_filename = os.path.basename(url)
         print(f"Downloading model {self.model_name}")
         targz_output_filepath = os.path.join('data', targz_output_filename)
-        wget.download(url, targz_output_filepath)
+        if not(os.path.exists(targz_output_filepath)):
+            wget.download(url, targz_output_filepath)
         return targz_output_filepath
 
     def get_folder_model(self):
         model_download_link = self.get_link_model()
         # Obtem o nome do arquito com a extensao .tar.gz
         model_tar_filename = os.path.basename(model_download_link)
-        print(model_tar_filename)
         # Obtem o nome do da pasta removendo '.tar.gz'
         model_folder = os.path.join('data', model_tar_filename.replace('.tar.gz', ''))
         return model_folder
@@ -112,9 +112,9 @@ class config:
 
         pipeline_config = config_util.create_pipeline_proto_from_configs(pipeline_config_dict)
         # Example 2: Save the pipeline config to disk
-        config_util.save_pipeline_config(pipeline_config, 'data')
+        config_util.save_pipeline_config(pipeline_config, 'configs')
 
-        os.rename('data/pipeline.config', self.output_config)
+        os.rename('configs/pipeline.config', self.output_config)
 
     def create_pipeline_config(self):
 

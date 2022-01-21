@@ -1,0 +1,147 @@
+--- # Application configuration - config.yaml
+dataset:
+    input_folder: "data/furnas_dataset_v0.03/imgs/train"
+    output_folder: "data/furnas_dataset_v0.03/imgs/train_aug"
+    input_csv: "data/furnas_dataset_v0.03/train.csv"
+
+preprocess:
+    output_csv: "data/furnas_dataset_v0.03/train_aug.csv"
+    image_extension: ".jpg"
+    seed: 42
+    resize: false
+    new_shape: (1280, 720)
+    aug_per_file: 1
+
+    augmentations:
+        #
+        # Color
+        #
+        GammaContrastMin: 0.5
+        GammaContrastMax: 1.5
+        LinearContrastMin: 0.5
+        LinearContrastMax: 1.5
+        AddToHueAndSaturationMin: -10
+        AddToHueAndSaturationMax: 10
+        #
+        # Dropout
+        #
+        DropoutMin: 0.05
+        DropoutMax: 0.2
+        #
+        CoarseDropoutPerMin: 0.01
+        CoarseDropoutPerMax: 0.05
+        CoarseDropoutPerSizeMin: 0.1
+        CoarseDropoutPerSizeMax: 0.2
+        PepperMin: 0.05
+        PepperMax: 0.2
+        CoarsePepperPerMin: 0.01
+        CoarsePepperPerMax: 0.05
+        CoarsePepperPerSizeMin: 0.1
+        CoarsePepperPerSizeMax: 0.2
+        SaltMin: 0.05
+        SaltMax: 0.2
+        CoarseSaltPerMin: 0.01
+        CoarseSaltPerMax: 0.05
+        CoarseSaltPerSizeMin: 0.1
+        CoarseSaltPerSizeMax: 0.2
+        SaltAndPepperMin: 0.05
+        SaltAndPepperMax: 0.2
+        CoarseSaltAndPepperMin: 0.01
+        CoarseSaltAndPepperMax: 0.05
+        CoarseSaltAndPepperPerSizeMax: 0.1
+        CoarseSaltAndPepperPerSizeMin: 0.2
+        #
+        # Noises
+        #
+        # Add
+        AddValueMin: -50
+        AddValueMax: 50
+        AddValuePercentagePerChannel: 0.8
+        # Add Elementwise
+        AddElementwiseValueMin: -100
+        AddElementwiseValueMax: 100
+        AddElementwisePercentagePerChannel: 0.8
+        # ImpulseNoise
+        ImpulseNoisePerMin: 0.05
+        ImpulseNoisePerMax: 0.1
+        #  AdditiveGaussianNoise
+        AdditiveGaussianNoiseScaleMin: 20
+        AdditiveGaussianNoiseScaleMax: 30
+        # AdditivaLaplaceNoise
+        AdditiveLaplaceNoiseScaleMin: 12.75 # 0.05 * 255
+        AdditiveLaplaceNoiseScaleMax: 51   # 0.2 * 255
+        # 
+        # Localization
+        # 
+        # Scale
+        ScaleXMin: 0.8
+        ScaleXMax: 1.2
+        ScaleYMin: 0.8
+        ScaleYMax: 1.2
+        # Translate
+        TranslateXMin: -0.1
+        TranslateXMax:  0.1
+        TranslateYMin: -0.1
+        TranslateYMax:  0.1
+        # Rotate
+        RotateMin: -15
+        RotateMax:  15
+        # Shear
+        ShearMin: -30
+        ShearMax:  30
+        # PiecewiseAffine
+        PieceWiseScaleMin: 0.01
+        PieceWiseScaleMax: 0.03
+        # PerspectiveTransform
+        PerspectiveTransformScaleMin: 0.01
+        PerspectiveTransformScaleMax: 0.05
+        # ElasticTransformation
+        ElasticTransformationAlphaMin: 1.0
+        ElasticTransformationAlphaMax: 2.0
+        ElasticTransformationSigmaMin: 0.8
+        ElasticTransformationSigmaMax: 0.9
+        # HorizontalFlip
+        HorizontalFlipPercentage: 0.5
+        # JpegCompression
+        JpegCompressionMin: 80
+        JpegCompressionMax: 95
+        # GaussianBlur
+        GaussianBlurMin: 0.5
+        GaussianBlurMax: 1.5
+        #AverageBlur
+        AverageBlurKMin: 2 
+        AverageBlurKMax: 4 
+        # MedianBlur
+        MedianBlurKMin: 1 # Must be a odd number
+        MedianBlurKMax: 3 # Must be a odd number
+        # BilateralBlur
+        BilateralBlurDistanceMin: 3
+        BilateralBlurDistanceMax: 10
+        BilateralBlurSigmaColorMin: 10
+        BilateralBlurSigmaColorMax: 250
+        BilateralBlurSigmaSpaceMin: 10
+        BilateralBlurSigmaSpaceMax: 250
+        # MotionBlur
+        MotionBlurMin: 5
+        MotionBlurMax: 10
+        # SnowFlakes
+        SnowflakesSizeMin: 0.7
+        SnowflakesSizeMax: 0.95
+        SnowflakesSpeedMin: 0.001
+        SnowflakesSpeedMax: 0.03
+        # Rain 
+        RainSpeedMin: 0.01
+        RainSpeedMax: 0.2
+
+prepare:
+    model_name: "ssd_mobilenet_v2_320x320"
+    labelmap_path: "data/furnas_dataset_v0.03/data/label_map.pbtxt"
+    fine_tune_checkpoint: "data/ssd_mobilenet_v2_320x320_coco17_tpu-8/checkpoint/ckpt-0"
+    num_classes: 6
+    train_record_path: "data/furnas_dataset_v0.03/train.record"
+    test_record_path: "data/furnas_dataset_v0.03/test.record"
+    batch_size: 1
+
+train:
+    checkpoint_save_path: "checkpoints"
+    pipeline_config_filepath: "configs/pipeline_ssd_mobilenet_v2_320x320_coco17_tpu-8.config"
