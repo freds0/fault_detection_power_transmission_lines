@@ -43,4 +43,3 @@ def generate_annotation(model, label_map, image_path, output_path):
   annotation_file = os.path.splitext(filename)[0] + '.xml'
   annotation_path = os.path.join(output_path, annotation_file)
   writer.save(annotation_path)
-  print('Generating file {}...'.format(annotation_path))

@@ -1,3 +1,4 @@
+import os
 import argparse
 import subprocess
 import yaml
@@ -18,10 +19,10 @@ def export_to_frozen_graph():
         exit()
 
     checkpoint_dir = args.checkpoint_dir if args.checkpoint_dir else os.path.join(config['pipeline_config']['checkpoint_save_path'], 'exported')
-    pipeline_config_file = args.pipeline_config_file if pipeline_config_file.config_file else config['pipeline_config']['pipeline_config_filepath']
-    output_export_dir  = args.output_export_dir if pipeline_config_file.output_export_dir else os.path.join(config['pipeline_config']['checkpoint_save_path'], 'exported')
+    pipeline_config_file = args.pipeline_config_file if args.pipeline_config_file else config['pipeline_config']['pipeline_config_filepath']
+    output_export_dir  = args.output_export_dir if args.output_export_dir else os.path.join(config['pipeline_config']['checkpoint_save_path'], 'exported')
 
-    print("Exporting checkpoints to frozen graph...")
+    print("Exporting frozen graph checkpoints to {}...".format(output_export_dir))
     subprocess.run(["python3", "/tensorflow/models/research/object_detection/exporter_main_v2.py",
         "--input_type=image_tensor",
         "--pipeline_config_path={}".format(pipeline_config_file),
