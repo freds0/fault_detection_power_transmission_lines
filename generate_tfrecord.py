@@ -1,3 +1,6 @@
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 """
 Source code originally published in https://github.com/datitran/raccoon_dataset
 
@@ -9,10 +12,8 @@ Usage:
   # Create test data:
   python generate_tfrecord.py --csv_input=data/test_labels.csv  --output_path=test.record
 """
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
-
+import argparse
+import yaml
 import os
 import io
 import pandas as pd
@@ -23,11 +24,6 @@ from PIL import Image
 from object_detection.utils import dataset_util
 from collections import namedtuple, OrderedDict
 
-flags = tf.app.flags
-flags.DEFINE_string('csv_input', '', 'Path to the CSV input')
-flags.DEFINE_string('output_path', '', 'Path to output TFRecord')
-flags.DEFINE_string('image_dir', '', 'Path to images')
-FLAGS = flags.FLAGS
 
 
 def class_text_to_int(row_label):
@@ -109,15 +105,39 @@ def create_tf_record(csv_input, path, output_path):
     print('Successfully created the TFRecords: {}'.format(output_path))
 
 
-def main(_):
-    output_path = os.path.join(os.getcwd(), output_path)
-    images_dir = FLAGS.image_dir
-    csv_filepath = FLAGS.csv_input
+if __name__ == "__main__":
 
-    #
-    #path = os.path.join(FLAGS.image_dir)
-    #output_path = os.path.join(os.getcwd(), FLAGS.output_path)
-    create_tf_record(csv_filepath, images_dir, output_path)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--base_dir', default='./')
+    parser.add_argument('--config_file', default='configs/parameters.yaml')
+    parser.add_argument('--input_train_csv', help='Input train csv filepath.')
+    parser.add_argument('--input_test_csv', help='Input test csv filepath.')
+    parser.add_argument('--images_train_dir', help='Train images folder.')
+    parser.add_argument('--images_test_dir', help='Test images folder.')
+    parser.add_argument('--output_train_tfrecord', help='Output train TFRecord filepath.')
+    parser.add_argument('--output_test_tfrecord', help='Output test TFRecord filepath.')
+    parser.add_argument('--only_train', action='store_true', help='Execute only for train dataset')
+    args = parser.parse_args()
 
-if __name__ == '__main__':
-    tf.app.run()
+    try:
+        with open(args.config_file, 'r') as file:
+            config = yaml.safe_load(file)
+    except Exception as e:
+        print('Error reading the config file {}'.format(args.config_file))
+        exit()
+
+    config_input_train_csv = config['preprocess']['output_data_aug_csv'] if config['pipeline_config']['use_data_aug'] else config['pipeline_config']['input_train_csv']
+    config_train_images_dir = config['preprocess']['output_data_aug_imgs_folder'] if config['pipeline_config']['use_data_aug'] else config['pipeline_config']['input_train_img_folder']
+
+    train_csv_filepath = os.path.join(args.base_dir, args.input_train_csv) if args.input_train_csv else config_input_train_csv
+    train_images_dir = os.path.join(args.base_dir, args.images_train_dir) if args.images_train_dir else config_train_images_dir
+    train_output_path = os.path.join(args.base_dir, args.output_train_tfrecord) if args.output_train_tfrecord else config['pipeline_config']['train_record_path']
+
+    create_tf_record(train_csv_filepath, train_images_dir, train_output_path)
+
+    if not (args.only_train):
+        test_csv_filepath = os.path.join(args.base_dir, args.input_test_csv) if args.input_test_csv else config['pipeline_config']['input_test_csv']
+        test_images_dir = os.path.join(args.base_dir, args.images_test_dir) if args.images_test_dir else config['pipeline_config']['input_test_img_folder']
+        test_output_path = os.path.join(args.base_dir, args.output_test_tfrecord) if args.output_test_tfrecord else config['pipeline_config']['test_record_path']
+
+        create_tf_record(test_csv_filepath, test_images_dir, test_output_path)

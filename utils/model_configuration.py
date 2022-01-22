@@ -1,37 +1,33 @@
 from object_detection.utils import config_util
 from object_detection import model_lib_v2
+from shutil import move
+from utils.models_links import models_links_dic
 import wget
 import tarfile
 import re
 import os
 
-models_links_dic = {
-    'faster_rcnn_resnet50_v1_1024x1024'         : "http://download.tensorflow.org/models/object_detection/tf2/20200711/faster_rcnn_resnet50_v1_1024x1024_coco17_tpu-8.tar.gz",
-    'faster_rcnn_inception_resnet_v2_1024x1024' : "http://download.tensorflow.org/models/object_detection/tf2/20200711/faster_rcnn_inception_resnet_v2_1024x1024_coco17_tpu-8.tar.gz",
-    'ssd_resnet101_v1_fpn_1024x1024'            : "http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_resnet101_v1_fpn_1024x1024_coco17_tpu-8.tar.gz",
-    'centernet_hg104_512x512'                   : "http://download.tensorflow.org/models/object_detection/tf2/20200713/centernet_hg104_512x512_coco17_tpu-8.tar.gz",
-    'efficientdet_d0'                           : "http://download.tensorflow.org/models/object_detection/tf2/20200711/efficientdet_d0_coco17_tpu-32.tar.gz",
-    'efficientdet_d2'                           : "http://download.tensorflow.org/models/object_detection/tf2/20200711/efficientdet_d2_coco17_tpu-32.tar.gz",
-    'ssd_mobilenet_v2_320x320'                  : "http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v2_320x320_coco17_tpu-8.tar.gz"
-}
 
 class model_config:
 
-    def __init__(self, model_name, labelmap_path = '', fine_tune_checkpoint = '', num_classes = 0, train_record_path = '', test_record_path = '', batch_size = 1):
+    def __init__(self, model_name, labelmap_path = '', num_classes = 0, train_record_path = '', test_record_path = '', batch_size = 1, output_filepath = '', fine_tune_checkpoint = None, data_dir = 'data', temp_dir = 'tmp'):
         self.model_name = model_name
         self.labelmap_path = labelmap_path
-        self.fine_tune_checkpoint = fine_tune_checkpoint
+        self.num_classes = num_classes
         self.train_record_path = train_record_path
         self.test_record_path = test_record_path
-        self.num_classes = num_classes
         self.batch_size = batch_size
-        self.output_config = os.path.join('configs', 'pipeline_' + os.path.basename(self.get_folder_model()) + '.config')
+        self.output_filepath = output_filepath
+        self.fine_tune_checkpoint = fine_tune_checkpoint
+        self.data_dir = data_dir
+        self.temp_dir = temp_dir
 
-    def get_link_model(self):
-        return models_links_dic[self.model_name]
+    @classmethod
+    def get_link_model(cls, model_name):
+        return models_links_dic[model_name]
 
     def download_model(self):
-        url = self.get_link_model()
+        url = self.get_link_model(self.model_name)
         targz_output_filename = os.path.basename(url)
         print(f"Downloading model {self.model_name}")
         targz_output_filepath = os.path.join('data', targz_output_filename)
@@ -39,19 +35,22 @@ class model_config:
             wget.download(url, targz_output_filepath)
         return targz_output_filepath
 
-    def get_folder_model(self):
-        model_download_link = self.get_link_model()
-        # Obtem o nome do arquito com a extensao .tar.gz
-        model_tar_filename = os.path.basename(model_download_link)
-        # Obtem o nome do da pasta removendo '.tar.gz'
-        model_folder = os.path.join('data', model_tar_filename.replace('.tar.gz', ''))
-        return model_folder
+    @classmethod
+    def get_folder_model(cls, model_name):
+        default = cls(model_name = model_name)
+        url_model = default.get_link_model(model_name)
+        model_tar_filename = os.path.basename(url_model)
+        model_dir = os.path.join(default.data_dir, model_tar_filename.replace('.tar.gz', ''))
+        return model_dir
+
+    def get_finetune_checkpoint(self):
+        return self.fine_tune_checkpoint if self.fine_tune_checkpoint else os.path.join(self.get_folder_model(self.model_name), 'checkpoint/ckpt-0')
 
     def unzip_model(self, targz_filepath):
         print(f"\nUnzipping file {targz_filepath}")
         # Descompactar o arquivo tar.gz
         tar = tarfile.open(targz_filepath)
-        tar.extractall(path='data')
+        tar.extractall(path=self.data_dir)
         tar.close()
         # Obtem o nome da pasta removendo '.tar.gz'
         model_folder = targz_filepath.replace('.tar.gz', '')
@@ -61,7 +60,7 @@ class model_config:
         targz_filename = self.download_model()
         return self.unzip_model(targz_filename)
 
-    def regular_expression_pipeline_config(self, pipeline_config):
+    def regular_expression_pipeline_config(self, pipeline_config, output_pipeline_config):
         # Realiza a leitura do arquivo de configurado do modelo escolhido
         with open(pipeline_config) as f:
             config_content = f.read()
@@ -72,7 +71,7 @@ class model_config:
 
         # Set fine_tune_checkpoint path
         config_content = re.sub('fine_tune_checkpoint: ".*?"',
-                        'fine_tune_checkpoint: "{}"'.format(self.fine_tune_checkpoint), config_content)
+                        'fine_tune_checkpoint: "{}"'.format(self.get_finetune_checkpoint()), config_content)
 
         # Set train tf-record file path
         config_content = re.sub('(input_path: ".*?)(PATH_TO_BE_CONFIGURED/train)(.*?")',
@@ -94,14 +93,13 @@ class model_config:
         config_content = re.sub('fine_tune_checkpoint_type: "classification"',
                         'fine_tune_checkpoint_type: "{}"'.format('detection'), config_content)
 
-        with open(self.output_config, 'w') as f:
+        with open(output_pipeline_config, 'w') as f:
             f.write(config_content)
 
     def dynamic_pipeline_config(self, config_path):
         '''
         Source: https://stackoverflow.com/questions/55323907/dynamically-editing-pipeline-config-for-tensorflow-object-detection
         '''
-
         # Load the pipeline config as a dictionary
         pipeline_config_dict = config_util.get_configs_from_pipeline_file(config_path)
 
@@ -112,13 +110,15 @@ class model_config:
 
         pipeline_config = config_util.create_pipeline_proto_from_configs(pipeline_config_dict)
         # Example 2: Save the pipeline config to disk
-        config_util.save_pipeline_config(pipeline_config, 'configs')
+        config_util.save_pipeline_config(pipeline_config, self.temp_dir)
 
-        os.rename('configs/pipeline.config', self.output_config)
+        move(os.path.join(self.temp_dir, 'pipeline.config'), self.output_filepath)
 
     def create_pipeline_config(self):
-
-        pipeline_config = os.path.join(self.get_folder_model(), 'pipeline.config')
-        self.regular_expression_pipeline_config(pipeline_config)
-        self.dynamic_pipeline_config(self.output_config)
-        return self.output_config
+        self.download_and_unzip_model()
+        input_pipeline_config = os.path.join(self.get_folder_model(self.model_name), 'pipeline.config')
+        temp_pipeline_config = os.path.join(self.temp_dir, 'pipeline.config')
+        os.makedirs(self.temp_dir, exist_ok=True)
+        self.regular_expression_pipeline_config(input_pipeline_config, temp_pipeline_config)
+        self.dynamic_pipeline_config(temp_pipeline_config)
+        return self.output_filepath

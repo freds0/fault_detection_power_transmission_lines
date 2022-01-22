@@ -1,11 +1,24 @@
 --- # Application configuration - config.yaml
-dataset:
-    input_folder: "data/furnas_dataset_v0.03/imgs/train"
-    output_folder: "data/furnas_dataset_v0.03/imgs/train_aug"
-    input_csv: "data/furnas_dataset_v0.03/train.csv"
+pipeline_config:
+    # Dataset
+    input_train_img_folder: "data/furnas_dataset_v0.03/imgs/train"
+    input_test_img_folder: "data/furnas_dataset_v0.03/imgs/test"
+    input_train_csv: "data/furnas_dataset_v0.03/train.csv"
+    input_test_csv: "data/furnas_dataset_v0.03/test.csv"
+    train_record_path: "data/furnas_dataset_v0.03/train.record"
+    test_record_path: "data/furnas_dataset_v0.03/test.record"
+    labelmap_path: "data/furnas_dataset_v0.03/data/label_map.pbtxt"
+    num_classes: 6
+    # Model
+    model_name: "faster_rcnn_resnet50_v1_800x1333"
+    checkpoint_save_path: "checkpoints"
+    pipeline_config_filepath: "data/pipeline_auto.config"
+    batch_size: 1
+    use_data_aug: True # True or False
 
 preprocess:
-    output_csv: "data/furnas_dataset_v0.03/train_aug.csv"
+    output_data_aug_imgs_folder: "data/furnas_dataset_v0.03/imgs/train_aug"
+    output_data_aug_csv: "data/furnas_dataset_v0.03/train_aug.csv"
     image_extension: ".jpg"
     seed: 42
     resize: false
@@ -132,16 +145,3 @@ preprocess:
         # Rain 
         RainSpeedMin: 0.01
         RainSpeedMax: 0.2
-
-prepare:
-    model_name: "ssd_mobilenet_v2_320x320"
-    labelmap_path: "data/furnas_dataset_v0.03/data/label_map.pbtxt"
-    fine_tune_checkpoint: "data/ssd_mobilenet_v2_320x320_coco17_tpu-8/checkpoint/ckpt-0"
-    num_classes: 6
-    train_record_path: "data/furnas_dataset_v0.03/train.record"
-    test_record_path: "data/furnas_dataset_v0.03/test.record"
-    batch_size: 1
-
-train:
-    checkpoint_save_path: "checkpoints"
-    pipeline_config_filepath: "configs/pipeline_ssd_mobilenet_v2_320x320_coco17_tpu-8.config"
