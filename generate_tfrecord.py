@@ -23,25 +23,7 @@ import tensorflow.compat.v1 as tf
 from PIL import Image
 from object_detection.utils import dataset_util
 from collections import namedtuple, OrderedDict
-
-
-
-def class_text_to_int(row_label):
-    if row_label == 'esfera_boa':
-        return 1
-    elif row_label == 'esfera_razoavel':
-        return 2
-    elif row_label == 'esfera_ruim':
-        return 3
-    elif row_label == 'isolador_ok':
-        return 4
-    elif row_label == 'isolador_falha':
-        return 5
-    elif row_label == 'ninho':
-        return 6
-    else:
-        print("Erro: " + row_label)
-        None
+from utils.class_to_int import class_text_to_int
 
 
 def split(df, group):
