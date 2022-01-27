@@ -8,7 +8,7 @@ def execute_train():
     parser.add_argument('--checkpoint_save_path', help='Path to save your checkpoints')
     parser.add_argument('--pipeline_file', help='Path to your pipeline config file.')
     parser.add_argument('--checkpoint_every_n', type=int, help='The number of steps per checkpoint.')
-    parser.add_argument('--num_train_steps'. type=int, help='Total number of trainning steps.')
+    parser.add_argument('--num_train_steps', type=int, help='Total number of trainning steps.')
     parser.add_argument('--num_workers', default=64, type=int, help='Number of cores that can be used for the training job.')
     args = parser.parse_args()
 
