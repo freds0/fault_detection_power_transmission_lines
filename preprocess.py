@@ -8,7 +8,7 @@ import time
 from shutil import copyfile
 
 def select_data(data):
-    selected_data = data[data['class'] == 'isolador_falha']
+    selected_data = data[data['class'] != 'isolador_ok']
     selected_data = list(selected_data.sort_values('filename').drop_duplicates('filename', keep='last')['filename'])
     return selected_data
 
