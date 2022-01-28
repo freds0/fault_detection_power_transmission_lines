@@ -1,6 +1,6 @@
 # Fault Detection Power Transmission Lines
 
-This repo is a tutorial for training and evaluating the Tensorflow Object Detection API for fault detection at power transmission lines.
+This repo is used for training and evaluating the Tensorflow Object Detection API for fault detection at power transmission lines.
 
 ![alt text](imgs/example0.jpg)
 
@@ -290,7 +290,7 @@ $ python inference.py \
 ```
 
 
-Below is an example image of the result:
+Below there are some examples images:
 
 ![alt text](imgs/example1.jpg)
 
