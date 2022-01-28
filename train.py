@@ -2,6 +2,7 @@ import argparse
 import subprocess
 import yaml
 
+
 def execute_train():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_file', default='configs/parameters.yaml')
@@ -17,6 +18,7 @@ def execute_train():
             config = yaml.safe_load(file)
     except Exception as e:
         print('Error reading the config file {}'.format(args.config_file))
+        print(e)
         exit()
 
     checkpoint_save_path = args.checkpoint_save_path if args.checkpoint_save_path else config['pipeline_config']['checkpoint_save_path']
@@ -33,6 +35,7 @@ def execute_train():
         "--num_workers={}".format(args.num_workers),
         "--alsologtostderr"
     ])
+
 
 if __name__ == "__main__":
     execute_train()

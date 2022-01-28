@@ -34,6 +34,7 @@ if __name__ == '__main__':
             config = yaml.safe_load(file)
     except Exception as e:
         print('Error reading the config file {}'.format(args.config_file))
+        print(e)
         exit()
     '''
     if args.seed == -1:

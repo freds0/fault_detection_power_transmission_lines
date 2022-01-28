@@ -19,6 +19,7 @@ if __name__ == "__main__":
             config = yaml.safe_load(file)
     except Exception as e:
         print('Error reading the config file {}'.format(args.config_file))
+        print(e)
         exit()
 
     model_name = args.model_name if args.model_name else config['pipeline_config']['model_name']

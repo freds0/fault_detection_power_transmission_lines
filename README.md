@@ -2,6 +2,8 @@
 
 This repo is a tutorial for training and evaluating the Tensorflow Object Detection API for fault detection at power transmission lines.
 
+![alt text](imgs/example0.jpg)
+
 The following steps will be presented regarding the workflow of an object detection project:
 - Requirements Installation
 - Create the Environment using Docker
@@ -290,7 +292,31 @@ $ python inference.py \
 
 Below is an example image of the result:
 
-![alt text](examples/image1.png)
+![alt text](imgs/example1.jpg)
+
+![alt text](imgs/example2.jpg)
+
+![alt text](imgs/example3.jpg)
+
+![alt text](imgs/example4.jpg)
+
+![alt text](imgs/example5.jpg)
+
+## Evaluating
+
+From a trained model, it is possible to perform its evaluation using the following script. 
+
+
+```
+$ python evaluation.py \
+    --config_file=PARAMETER_CONFIG_YAML_FILE \
+    --checkpoint_dir=EXPORTED_CHECKPOINTS_DIR \
+    --pipeline_config_file=PIPELINE_AUTOCONFIG_FILEPATH \
+    --save_dir=EVAL_RESULT_FOLDER
+```
+
+This way, the model will be evaluated based on the test set images, and the result will be saved in the folder EVAL_RESULT_FOLDER.  
+
 
 ## Auto-Annotating Images
 
@@ -330,7 +356,7 @@ $ labelImg
 ```
 Click "Open Dir" and choose the directory containing the images and annotations:
 
-![alt text](examples/image2.png)
+![alt text](imgs/image2.png)
 
 If you need to export annotations to another format (eg COCO or YOLO), check the "tools" folder which contains some conversion scripts.
 

@@ -2,6 +2,8 @@ import os
 import argparse
 import subprocess
 import yaml
+import os
+
 
 def export_to_frozen_graph():
     parser = argparse.ArgumentParser()
@@ -16,6 +18,7 @@ def export_to_frozen_graph():
             config = yaml.safe_load(file)
     except Exception as e:
         print('Error reading the config file {}'.format(args.config_file))
+        print(e)
         exit()
 
     checkpoint_dir = args.checkpoint_dir if args.checkpoint_dir else os.path.join(config['pipeline_config']['checkpoint_save_path'], 'exported')

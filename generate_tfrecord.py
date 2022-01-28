@@ -106,6 +106,7 @@ if __name__ == "__main__":
             config = yaml.safe_load(file)
     except Exception as e:
         print('Error reading the config file {}'.format(args.config_file))
+        print(e)
         exit()
 
     config_input_train_csv = config['preprocess']['output_data_aug_csv'] if config['pipeline_config']['use_data_aug'] else config['pipeline_config']['input_train_csv']
