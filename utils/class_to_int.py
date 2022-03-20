@@ -1,5 +1,5 @@
 
-def class_text_to_int(row_label):
+def class_label_to_int(row_label):
     if row_label == 'baliser_ok':
         return 1
     elif row_label == 'baliser_aok':
@@ -23,5 +23,5 @@ def class_text_to_int(row_label):
     elif row_label == 'insulator_unk':
         return 11
     else:
-        print("Erro: " + row_label)
+        print("Error: " + row_label)
         None

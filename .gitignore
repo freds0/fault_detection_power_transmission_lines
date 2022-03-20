@@ -3,8 +3,17 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Datasets
+data/
+
+# Checkpoints
+checkpoints/
+
 # C extensions
 *.so
+
+# Output
+output*
 
 # Distribution / packaging
 .Python

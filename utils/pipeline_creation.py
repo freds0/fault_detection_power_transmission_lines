@@ -1,67 +1,76 @@
 from object_detection.utils import config_util
 from object_detection import model_lib_v2
-from shutil import move
-from utils.models_links import models_links_dic
+from shutil import copy, rmtree
+import utils.models_zoo
 import wget
 import tarfile
 import re
-import os
+from os.path import join, exists, basename
+import tempfile
 
+zoo = utils.models_zoo.zoo()
 
 class model_config:
 
-    def __init__(self, model_name, labelmap_path = '', num_classes = 0, train_record_path = '', test_record_path = '', batch_size = 1, output_filepath = '', fine_tune_checkpoint = None, data_dir = 'data', temp_dir = 'tmp'):
+    def __init__(self, model_name, labelmap_path = '', num_classes = 0, train_record_path = '', test_record_path = '', batch_size = 1, output_filepath = '', fine_tune_checkpoint = None, data_dir = 'data'):
         self.model_name = model_name
         self.labelmap_path = labelmap_path
         self.num_classes = num_classes
         self.train_record_path = train_record_path
         self.test_record_path = test_record_path
         self.batch_size = batch_size
-        self.output_filepath = output_filepath
         self.fine_tune_checkpoint = fine_tune_checkpoint
         self.data_dir = data_dir
-        self.temp_dir = temp_dir
+        self.temp_dir = tempfile.TemporaryDirectory()
+        print(f"Created temporary directory {self.temp_dir.name}.")
+        if not output_filepath:
+            self.output_filepath = join(self.data_dir, self.__get_folder_model())
+        else:
+            self.output_filepath = output_filepath
 
-    @classmethod
-    def get_link_model(cls, model_name):
-        return models_links_dic[model_name]
-
-    def download_model(self):
-        url = self.get_link_model(self.model_name)
-        targz_output_filename = os.path.basename(url)
+    def __download_model(self):
+        url = zoo.get_link_model(self.model_name)
+        targz_output_filename = basename(url)
         print(f"Downloading model {self.model_name}")
-        targz_output_filepath = os.path.join('data', targz_output_filename)
-        if not(os.path.exists(targz_output_filepath)):
-            wget.download(url, targz_output_filepath)
+        targz_output_filepath = join(self.data_dir, targz_output_filename)
+        if not(exists(targz_output_filepath)):
+            wget.download(url, out=targz_output_filepath)
         return targz_output_filepath
 
-    @classmethod
-    def get_folder_model(cls, model_name):
-        default = cls(model_name = model_name)
-        url_model = default.get_link_model(model_name)
-        model_tar_filename = os.path.basename(url_model)
-        model_dir = os.path.join(default.data_dir, model_tar_filename.replace('.tar.gz', ''))
-        return model_dir
+    def __get_folder_model(self):
 
-    def get_finetune_checkpoint(self):
-        return self.fine_tune_checkpoint if self.fine_tune_checkpoint else os.path.join(self.get_folder_model(self.model_name), 'checkpoint/ckpt-0')
+        return join(
+                self.data_dir,
+                zoo.get_folder_model(self.model_name)
+        )
 
-    def unzip_model(self, targz_filepath):
+    def __get_finetune_checkpoint(self):
+
+        if self.fine_tune_checkpoint:
+            return self.fine_tune_checkpoint
+        else:
+            checkpoint_filepath = join(
+                self.__get_folder_model(),
+                'checkpoint/ckpt-0'
+            )
+            return checkpoint_filepath
+
+    def __unzip_model(self, targz_filepath):
         print(f"\nUnzipping file {targz_filepath}")
-        # Descompactar o arquivo tar.gz
+        # Unzip tar.gz file
         tar = tarfile.open(targz_filepath)
         tar.extractall(path=self.data_dir)
         tar.close()
-        # Obtem o nome da pasta removendo '.tar.gz'
+        # Get the folder's name
         model_folder = targz_filepath.replace('.tar.gz', '')
         return model_folder
 
-    def download_and_unzip_model(self):
-        targz_filename = self.download_model()
-        return self.unzip_model(targz_filename)
+    def __download_and_unzip_model(self):
+        targz_filename = self.__download_model()
+        return self.__unzip_model(targz_filename)
 
-    def regular_expression_pipeline_config(self, pipeline_config, output_pipeline_config):
-        # Realiza a leitura do arquivo de configurado do modelo escolhido
+    def __regular_expression_pipeline_config(self, pipeline_config, output_pipeline_config):
+        # Read model's config file
         with open(pipeline_config) as f:
             config_content = f.read()
 
@@ -71,7 +80,7 @@ class model_config:
 
         # Set fine_tune_checkpoint path
         config_content = re.sub('fine_tune_checkpoint: ".*?"',
-                        'fine_tune_checkpoint: "{}"'.format(self.get_finetune_checkpoint()), config_content)
+                        'fine_tune_checkpoint: "{}"'.format(self.__get_finetune_checkpoint()), config_content)
 
         # Set train tf-record file path
         config_content = re.sub('(input_path: ".*?)(PATH_TO_BE_CONFIGURED/train)(.*?")',
@@ -96,7 +105,7 @@ class model_config:
         with open(output_pipeline_config, 'w') as f:
             f.write(config_content)
 
-    def dynamic_pipeline_config(self, config_path):
+    def __dynamic_pipeline_config(self, config_path):
         '''
         Source: https://stackoverflow.com/questions/55323907/dynamically-editing-pipeline-config-for-tensorflow-object-detection
         '''
@@ -110,15 +119,19 @@ class model_config:
 
         pipeline_config = config_util.create_pipeline_proto_from_configs(pipeline_config_dict)
         # Example 2: Save the pipeline config to disk
-        config_util.save_pipeline_config(pipeline_config, self.temp_dir)
-
-        move(os.path.join(self.temp_dir, 'pipeline.config'), self.output_filepath)
+        config_util.save_pipeline_config(pipeline_config, self.temp_dir.name)
+        # Copy from temp dir to final folder
+        copy(join(self.temp_dir.name, 'pipeline.config'), self.output_filepath)
 
     def create_pipeline_config(self):
-        self.download_and_unzip_model()
-        input_pipeline_config = os.path.join(self.get_folder_model(self.model_name), 'pipeline.config')
-        temp_pipeline_config = os.path.join(self.temp_dir, 'pipeline.config')
-        os.makedirs(self.temp_dir, exist_ok=True)
-        self.regular_expression_pipeline_config(input_pipeline_config, temp_pipeline_config)
-        self.dynamic_pipeline_config(temp_pipeline_config)
+        # Download and unzip model data
+        self.__download_and_unzip_model()
+        # Create pipeline file
+        input_pipeline_config = join(self.__get_folder_model(), 'pipeline.config')
+        temp_pipeline_config = join(self.temp_dir.name, 'pipeline.config')
+        self.__regular_expression_pipeline_config(input_pipeline_config, temp_pipeline_config)
+        self.__dynamic_pipeline_config(temp_pipeline_config)
+        # Clear temp dir
+        self.temp_dir.cleanup()
+
         return self.output_filepath

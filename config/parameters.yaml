@@ -1,32 +1,32 @@
 --- # Application configuration - config.yaml
 pipeline_config:
     # Dataset
-    input_train_img_folder: "data/furnas_dataset_v0.06/imgs/train"
-    input_test_img_folder: "data/furnas_dataset_v0.06/imgs/test"
-    input_train_csv: "data/furnas_dataset_v0.06/train.csv"
-    input_test_csv: "data/furnas_dataset_v0.06/test.csv"
-    train_record_path: "data/furnas_dataset_v0.06/train.record"
-    test_record_path: "data/furnas_dataset_v0.06/test.record"
-    labelmap_path: "data/furnas_dataset_v0.06/data/label_map.pbtxt"
-    num_classes: 6
+    input_train_img_folder: "data/furnas_dataset_v0.07/imgs/train"
+    input_test_img_folder: "data/furnas_dataset_v0.07/imgs/test"
+    input_train_csv: "data/furnas_dataset_v0.07/train.csv"
+    input_test_csv: "data/furnas_dataset_v0.07/test.csv"
+    train_record_path: "data/furnas_dataset_v0.07/train.record"
+    test_record_path: "data/furnas_dataset_v0.07/test.record"
+    labelmap_path: "data/furnas_dataset_v0.07/data/label_map.pbtxt"
+    num_classes: 11
     # Model
-    model_name: "faster_rcnn_resnet50_v1_800x1333"
+    model_name: "ssd_mobilenet_v2_320x320"
     checkpoint_save_path: "checkpoints"
-    pipeline_config_filepath: "data/pipeline_auto.config"
+    pipeline_config_filepath: "data/pipeline_ssd_mobilenet_v2_320x320.config"
     # Training
     num_train_steps: 50000
     checkpoint_every_n: 10000
     batch_size: 2
-    use_data_aug: True # True or False
+    use_data_aug: false # True or False
 
 preprocess:
-    output_data_aug_imgs_folder: "data/furnas_dataset_v0.06/imgs/train_aug"
-    output_data_aug_csv: "data/furnas_dataset_v0.06/train_aug.csv"
+    output_data_aug_imgs_folder: "data/furnas_dataset_v0.07/imgs/train_aug"
+    output_data_aug_csv: "data/furnas_dataset_v0.07/train_aug.csv"
     image_extension: ".jpg"
     seed: 42
     resize: false
     new_shape: (1280, 720)
-    aug_per_file: 2
+    aug_per_file: 1
 
     augmentations:
         #

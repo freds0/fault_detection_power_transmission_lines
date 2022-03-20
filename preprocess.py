@@ -1,4 +1,5 @@
-import os
+from os.path import join, isdir
+from os import makedirs, listdir
 import argparse
 import yaml
 import pandas as pd
@@ -8,7 +9,14 @@ import time
 from shutil import copyfile
 
 def select_data(data):
-    selected_data = data[data['class'] != 'isolador_ok']
+    '''
+    Add here the image selection rule to receive data augmentation
+    for example:
+
+        selected_data = data[data['class'] != 'insulator_ok']
+    '''
+    selected_data = data
+
     selected_data = list(selected_data.sort_values('filename').drop_duplicates('filename', keep='last')['filename'])
     return selected_data
 
@@ -17,9 +25,9 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--base_dir', default='./')
-    parser.add_argument('--config_file', default='./configs/parameters.yaml')
-    parser.add_argument('--input_folder', help='input images folder.')
-    parser.add_argument('--output_folder', help='Folder to save data augmented images.')
+    parser.add_argument('-y', '--yaml', default='config/parameters.yaml', help='Config file YAML format')
+    parser.add_argument('-i', '--input_folder', help='input images folder.')
+    parser.add_argument('-o', '--output_folder', help='Folder to save data augmented images.')
     parser.add_argument('--input_csv', help='Input csv filepath.')
     parser.add_argument('--output_csv', help='Output csv filepath')
     parser.add_argument('--image_extension', help='Image file extension. Ex. .jpg or .jpeg')
@@ -30,10 +38,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     try:
-        with open(args.config_file, 'r') as file:
+        with open(args.yaml, 'r') as file:
             config = yaml.safe_load(file)
     except Exception as e:
-        print('Error reading the config file {}'.format(args.config_file))
+        print('Error reading the config file {}'.format(args.yaml))
         print(e)
         exit()
     '''
@@ -45,17 +53,17 @@ if __name__ == '__main__':
     # total number of augmentations per image file
     aug_per_file = args.aug_per_file if args.aug_per_file else config['preprocess']['aug_per_file']
     # define input folder
-    input_folder = os.path.join(args.base_dir, args.input_folder) if args.input_folder else config['pipeline_config']['input_train_img_folder']
+    input_folder = join(args.base_dir, args.input_folder) if args.input_folder else config['pipeline_config']['input_train_img_folder']
     # define and create output_folder
-    output_folder = os.path.join(args.base_dir, args.output_folder) if args.output_folder else config['preprocess']['output_data_aug_imgs_folder']
+    output_folder = join(args.base_dir, args.output_folder) if args.output_folder else config['preprocess']['output_data_aug_imgs_folder']
     # define csv filepath
-    input_csv_filepath = os.path.join(args.base_dir, args.input_csv) if args.input_csv else config['pipeline_config']['input_train_csv']
+    input_csv_filepath = join(args.base_dir, args.input_csv) if args.input_csv else config['pipeline_config']['input_train_csv']
     # define csv output filepath
-    output_csv_filepath = os.path.join(args.base_dir, args.output_csv) if args.output_csv else config['preprocess']['output_data_aug_csv']
+    output_csv_filepath = join(args.base_dir, args.output_csv) if args.output_csv else config['preprocess']['output_data_aug_csv']
 
     # create output folder
-    if not os.path.isdir(output_folder):
-        os.makedirs(output_folder)
+    if not isdir(output_folder):
+        makedirs(output_folder)
 
     # 1. load DataFrame with annotations
     data = pd.read_csv(input_csv_filepath)
@@ -82,5 +90,5 @@ if __name__ == '__main__':
 
     # copy images files to same folder
     print('Copying image files...')
-    for filename in tqdm.tqdm(os.listdir(config['pipeline_config']['input_train_img_folder'])):
-        copyfile(os.path.join(config['pipeline_config']['input_train_img_folder'], filename), os.path.join(config['preprocess']['output_data_aug_imgs_folder'], filename))
+    for filename in tqdm.tqdm(listdir(config['pipeline_config']['input_train_img_folder'])):
+        copyfile(join(config['pipeline_config']['input_train_img_folder'], filename), join(config['preprocess']['output_data_aug_imgs_folder'], filename))

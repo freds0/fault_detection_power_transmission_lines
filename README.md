@@ -137,7 +137,7 @@ The default configuration is in the file **data/parameters.yaml**, named as PARA
 - **num_classes**: number of classes present in the dataset.
 
 #### Model
-- **model_name**: name of the model to be trained. Must be available in the utils/models_links.py.
+- **model_name**: name of the model to be trained. Verify utils/models_zoo.py file.
 - **checkpoint_save_path**: "checkpoints"
 - **pipeline_config_filepath**: folder in which checkpoints will be saved.
 - **batch_size**: number of images per training batch. It depends on the GPU used.
@@ -151,21 +151,17 @@ There is a script already configured via file that uses the [imgaug library](htt
 
 ```
 $ python preprocess.py \
-    --config_file=PARAMETER_CONFIG_YAML_FILE \
+    --yaml=PARAMETER_CONFIG_YAML_FILE \
     --input_folder=INPUT_TRAIN_FOLDER \
     --output_folder=OUTPUT_TRAIN_AUG_FOLDER \
-    --input_csv=TRAIN_CSV_FILEPATH \
-    --image_extension='.jpg' \
-    --aug_per_file=2 \
-    --resize \
-    --new_shape=(1024,1024)
+    --input_csv=TRAIN_CSV_FILEPATH 
 ```
 
 If you prefer to follow the settings in the PARAMETER_CONFIG_YAML_FILE file, just run:
 
 ```
 $ python preprocess.py \
-    --config_file=PARAMETER_CONFIG_YAML_FILE 
+    --yaml=PARAMETER_CONFIG_YAML_FILE 
 ```
 
 ## TFRecord Files
@@ -173,8 +169,8 @@ $ python preprocess.py \
 **Furnas Dataset** has two files that contain the annotations: "train.csv" and "test.csv". For training the models, it is necessary to convert them to the tfrecord format. To do this, run the following command:
 
 ```
-$ python generate_tfrecord.py \
-    --config_file=PARAMETER_CONFIG_YAML_FILE \
+$ python create_tfrecord.py \
+    --yaml=PARAMETER_CONFIG_YAML_FILE \
     --input_train_csv=TRAIN_CSV_FILEPATH \
     --input_test_csv=TEST_CSV_FILEPATH \
     --images_train_dir=INPUT_TRAIN_FOLDER \
@@ -187,18 +183,19 @@ If you prefer to follow the settings in the PARAMETER_CONFIG_YAML_FILE file, jus
 
 ```
 $ python generate_tfrecord.py \
-    --config_file=PARAMETER_CONFIG_YAML_FILE 
+    --yaml=PARAMETER_CONFIG_YAML_FILE 
 ```
 
-## Create Pipeline Config
+## Create Pipeline
 
-to train the chosen model, it is necessary to download the package containing the checkpoints and the pipeline file, and edit the pipeline file. This is done automatically, by running the command: 
+To train the chosen model, it is necessary to download the package containing the checkpoints and the pipeline file, and edit the pipeline file. This is done automatically, by running the command: 
 ```
-$ python create_auto_config.py \
-    --config_file=PARAMETER_CONFIG_YAML_FILE \
+$ python create_pipeline.py \
+    --yaml=PARAMETER_CONFIG_YAML_FILE \
     --model_name=SELECTED_MODEL_NAME \
-    --finetune_checkpoint=PIPELINE_AUTOCONFIG_FILEPATH \
-    --batch_size=BATCH_SIZE
+    --fine_tune_checkpoint=PIPELINE_AUTOCONFIG_FILEPATH \
+    --batch_size=BATCH_SIZE \
+    --output_filepath=OUTPUT_PIPELINE_FILEPATH
 ```
 
 
@@ -207,8 +204,8 @@ In this way, a PIPELINE_AUTOCONFIG_FILEPATH file will be created containing the 
 If you prefer to follow the settings in the PARAMETER_CONFIG_YAML_FILE file, just run:
 
 ```
-$ python create_auto_config.py \
-    --config_file=PARAMETER_CONFIG_YAML_FILE 
+$ python create_pipeline.py \
+    --yaml=PARAMETER_CONFIG_YAML_FILE 
 ```
 
 ## Training
@@ -217,8 +214,8 @@ Assuming everything went well during the requirements installation, to do the tr
 
 ```
 $ python train.py \
-    --config_file=PARAMETER_CONFIG_YAML_FILE \
-    --checkpoint_save_path=CHECKPOINTS_FOLDER \
+    --yaml=PARAMETER_CONFIG_YAML_FILE \
+    --checkpoint_path=CHECKPOINTS_FOLDER \
     --pipeline_file=PIPELINE_AUTOCONFIG_FILEPATH \
     --checkpoint_every_n=CHECKPOINTS_STEPS \
     --num_train_steps=TRAIN_STEPS \
@@ -240,23 +237,36 @@ I1223 23:31:42.473480 140361518614400 model_lib_v2.py:708] {'Loss/classification
  'learning_rate': 0.1666635}
  ```
 
+To fine tune the model from a checkpoint, add the parameter 'fine_tune_checkpoint', like the following command:
+
+```
+$ python train.py \
+    --yaml=PARAMETER_CONFIG_YAML_FILE \
+    --checkpoint_path=CHECKPOINTS_FOLDER \
+    --fine_tune_checkpoint=FINETUNING_CHECKPOINTS_FOLDER
+    --pipeline_file=PIPELINE_AUTOCONFIG_FILEPATH \
+    --checkpoint_every_n=CHECKPOINTS_STEPS \
+    --num_train_steps=TRAIN_STEPS \
+    --num_workers=NUM_WORKS
+```
+
 ## Exporting your Trained Model do Frozen Graph
 
 Exporting the model to a Frozen Graph file is the best option if you want to continue training, perform inference or use it as a subgraph. To export the trained model, run the following command:
 
 ```
 $ python export.py \
-    --config_file=PARAMETER_CONFIG_YAML_FILE \
+    --yaml=PARAMETER_CONFIG_YAML_FILE \
     --pipeline_config_file=PIPELINE_AUTOCONFIG_FILEPATH \
     --checkpoint_dir=CHECKPOINTS_FOLDER \
-    --output_export_dir=EXPORTED_CHECKPOINTS_DIR
+    --output_dir=EXPORTED_CHECKPOINTS_DIR
 ```
 
 If you prefer to follow the settings in the PARAMETER_CONFIG_YAML_FILE file, just run:
 
 ```
 $ python export.py \
-    --config_file=PARAMETER_CONFIG_YAML_FILE 
+    --yaml=PARAMETER_CONFIG_YAML_FILE 
 ```
 
 In this way, the model will be exported to the output folder, generating the following folder structure:
@@ -275,7 +285,7 @@ From a trained and exported model, you can perform inference and detect fault in
 
 ```
 $ python inference.py \
-    --config_file=PARAMETER_CONFIG_YAML_FILE \
+    --yaml=PARAMETER_CONFIG_YAML_FILE \
     --checkpoint_dir=EXPORTED_CHECKPOINTS_DIR \
     --image_path=SOURCE_IMAGES_DIR \
     --label_map=LABEL_MAP_FILE \
@@ -302,16 +312,14 @@ Below there are some examples images:
 
 ![alt text](imgs/example5.jpg)
 
-## Evaluating
+## Test
 
-From a trained model, it is possible to perform its evaluation using the following script. 
-
-
+You can evaluate the trained model using the Furnas Dataset test images. To do this, run the following command:
 ```
-$ python evaluation.py \
-    --config_file=PARAMETER_CONFIG_YAML_FILE \
+$ python test.py \
+    --yaml=PARAMETER_CONFIG_YAML_FILE \
     --checkpoint_dir=EXPORTED_CHECKPOINTS_DIR \
-    --pipeline_config_file=PIPELINE_AUTOCONFIG_FILEPATH \
+    --pipeline_file=PIPELINE_AUTOCONFIG_FILEPATH \
     --save_dir=EVAL_RESULT_FOLDER
 ```
 
@@ -325,7 +333,7 @@ You can use a pre-trained model, with an early version of the dataset, to produc
 To generate annotations in xml format, run the following command:
 
 ```
-$ python annotate.py \
+$ python create_annotation.py \
     --config_file=PARAMETER_CONFIG_YAML_FILE \
     --checkpoint_dir=EXPORTED_CHECKPOINTS_DIR \
     --image_path=SOURCE_IMAGES_DIR \
@@ -360,6 +368,59 @@ Click "Open Dir" and choose the directory containing the images and annotations:
 
 If you need to export annotations to another format (eg COCO or YOLO), check the "tools" folder which contains some conversion scripts.
 
+## Extra
+
+The list of classes is defined in the file 'utils/class_to_int.py'. The existing classes are:
+
+- **baliser_ok** : Baliser OK
+- **baliser_aok** : Baliser Almost OK
+- **baliser_nok** : Baliser Not OK
+- **insulator_ok** : Insulator OK
+- **insulator_unk** : Insulator Unknown
+- **insulator-nok** : Insulator Not OK
+- **bird_nest** : Bird Nest
+- **stockbridge_ok** : Stockbridge OK
+- **stockbridge_nok** : Stockbridge Not OK
+- **spacer_ok** : Spacer OK
+- **spacer_nok** : Spacer Not OK
+
+The models name list is available at 'utils/models_zoo.py' file. The available models names are:
+
+- 'centernet_hg104_512x512
+- centernet_hg104_1024x1024
+- centernet_resnet50_v1_fpn_512x512
+- centernet_resnet101_v1_fpn_512x512
+- centernet_resnet50_v2_512x512
+- centernet_mobilenetv2fpn_512x512
+- efficientdet_d0
+- efficientdet_d1
+- efficientdet_d2
+- efficientdet_d3
+- efficientdet_d4
+- efficientdet_d5
+- efficientdet_d6
+- efficientdet_d7
+- ssd_mobilenet_v2_320x320
+- ssd_mobilenet_v2_fpnlite_320x320
+- ssd_mobilenet_v2_fpnlite_640x640
+- ssd_resnet50_v1_fpn_640x640
+- ssd_resnet50_v1_fpn_1024x1024
+- ssd_resnet101_v1_fpn_640x640
+- ssd_resnet101_v1_fpn_1024x1024
+- ssd_resnet152_v1_fpn_640x640
+- ssd_resnet152_v1_fpn_1024x1024
+- faster_rcnn_resnet50_v1_640x640
+- faster_rcnn_resnet50_v1_1024x1024
+- faster_rcnn_resnet50_v1_800x1333
+- faster_rcnn_resnet101_v1_640x640
+- faster_rcnn_resnet101_v1_1024x1024
+- faster_rcnn_resnet101_v1_800x1333
+- faster_rcnn_resnet152_v1_640x640
+- faster_rcnn_resnet152_v1_1024x1024
+- faster_rcnn_resnet152_v1_800x1333
+- faster_rcnn_inception_resnet_v2_640x640'
+- faster_rcnn_inception_resnet_v2_1024x1024
+- 
 ## References
 
 - [TensorFlow 2 Object Detection API tutorial](https://tensorflow-object-detection-api-tutorial.readthedocs.io/en/latest/index.html)
