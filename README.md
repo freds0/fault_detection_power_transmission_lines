@@ -420,7 +420,7 @@ The models name list is available at 'utils/models_zoo.py' file. The available m
 - faster_rcnn_resnet152_v1_800x1333
 - faster_rcnn_inception_resnet_v2_640x640'
 - faster_rcnn_inception_resnet_v2_1024x1024
-- 
+
 ## References
 
 - [TensorFlow 2 Object Detection API tutorial](https://tensorflow-object-detection-api-tutorial.readthedocs.io/en/latest/index.html)
