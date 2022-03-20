@@ -24,6 +24,7 @@ def execute_model_evaluation():
     checkpoint_dir = args.checkpoint_dir if args.checkpoint_dir else join(config['pipeline_config']['checkpoint_save_path'], 'exported')
     pipeline_file = args.pipeline_file if args.pipeline_file else config['pipeline_config']['pipeline_config_filepath']
     output_dir  = args.output_dir if args.output_dir else join(config['pipeline_config']['checkpoint_save_path'], 'exported')
+    timeout = 3
 
     print("Executing evaluation...")
     subprocess.run(["python3", "/tensorflow/models/research/object_detection/model_main_tf2.py",
@@ -31,7 +32,7 @@ def execute_model_evaluation():
         "--model_dir={}".format(checkpoint_dir),
         "--checkpoint_dir={}".format(output_dir),
         "--num_workers={}".format(args.num_workers),
-        "--eval_timeout={5}",
+        "--eval_timeout={}".format(timeout),
         "--alsologtostderr"
     ])
 

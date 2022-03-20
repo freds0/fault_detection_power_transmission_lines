@@ -78,7 +78,7 @@ def execute_train():
         set_checkpoint_at_pipeline(pipeline_file, checkpoint_filepath)
 
     subprocess.run(["python3", "/tensorflow/models/research/object_detection/model_main_tf2.py",
-        "--model_dir={}".format(checkpoint_save_path),
+        "--model_dir={}".format(checkpoint_path),
         "--pipeline_config_path={}".format(pipeline_file),
         "--checkpoint_every_n={}".format(checkpoint_every_n),
         "--num_train_steps={}".format(num_train_steps),
