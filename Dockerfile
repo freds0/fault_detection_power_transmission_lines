@@ -18,7 +18,7 @@ RUN apt-get install -y \
 
 RUN python -m pip install -U pip
 
-RUN pip install jupyter matplotlib pascal_voc_writer
+RUN pip install jupyter matplotlib pyyaml==5.4.1 imgaug==0.4.0 pascal_voc_writer==0.1.4
 
 RUN git clone https://github.com/tensorflow/models.git /tensorflow/models
 
