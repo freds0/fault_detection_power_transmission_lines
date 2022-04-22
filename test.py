@@ -1,8 +1,6 @@
 import argparse
 import subprocess
 import yaml
-from os.path import join
-
 
 def execute_model_evaluation():
     parser = argparse.ArgumentParser()

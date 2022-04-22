@@ -1,6 +1,7 @@
 import argparse
 import yaml
 from utils.pipeline_creation import model_config
+import ast
 
 if __name__ == "__main__":
 
@@ -27,7 +28,7 @@ if __name__ == "__main__":
     labelmap_path = config['pipeline_config']['labelmap_path']
     train_record_path = config['pipeline_config']['train_record_path']
     test_record_path = config['pipeline_config']['test_record_path']
-    num_classes = config['pipeline_config']['num_classes']
+    num_classes = len(ast.literal_eval(config['pipeline_config']['classes_names']))
     output_filepath = args.output_filepath if args.output_filepath else config['pipeline_config']['pipeline_config_filepath']
 
     pipeline_config = model_config(

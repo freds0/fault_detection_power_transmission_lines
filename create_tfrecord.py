@@ -17,7 +17,7 @@ from PIL import Image
 from object_detection.utils import dataset_util
 from collections import namedtuple, OrderedDict
 from utils.class_to_int import class_label_to_int
-
+import ast
 
 def split(df, group):
     data = namedtuple('data', ['filename', 'object'])
@@ -25,7 +25,7 @@ def split(df, group):
     return [data(filename, gb.get_group(x)) for filename, x in zip(gb.groups.keys(), gb.groups)]
 
 
-def create_tf_example(group, path):
+def create_tf_example(group, path, labels_list):
     with tf.gfile.GFile(join(path, '{}'.format(group.filename)), 'rb') as fid:
         encoded_jpg = fid.read()
     encoded_jpg_io = io.BytesIO(encoded_jpg)
@@ -47,7 +47,7 @@ def create_tf_example(group, path):
         ymins.append(row['ymin'] / height)
         ymaxs.append(row['ymax'] / height)
         classes_text.append(row['class'].encode('utf8'))
-        classes.append(class_label_to_int(row['class']))
+        classes.append(class_label_to_int(row['class'], labels_list))
 
     tf_example = tf.train.Example(features=tf.train.Features(feature={
         'image/height': dataset_util.int64_feature(height),
@@ -66,14 +66,14 @@ def create_tf_example(group, path):
     return tf_example
 
 
-def create_tf_record(csv_input, path, output_path):
+def create_tf_record(csv_input, path, output_path, labels_list):
 
     examples = pd.read_csv(csv_input)
     grouped = split(examples, 'filename')
 
     writer = tf.python_io.TFRecordWriter(output_path)
     for group in grouped:
-        tf_example = create_tf_example(group, path)
+        tf_example = create_tf_example(group, path, labels_list)
         writer.write(tf_example.SerializeToString())
 
     writer.close()
@@ -104,16 +104,16 @@ if __name__ == "__main__":
 
     config_input_train_csv = config['preprocess']['output_data_aug_csv'] if config['pipeline_config']['use_data_aug'] else config['pipeline_config']['input_train_csv']
     config_train_images_dir = config['preprocess']['output_data_aug_imgs_folder'] if config['pipeline_config']['use_data_aug'] else config['pipeline_config']['input_train_img_folder']
-
+    labels_list = ast.literal_eval(config['pipeline_config']['classes_names'])
     train_csv_filepath = join(args.base_dir, args.input_train_csv) if args.input_train_csv else config_input_train_csv
     train_images_dir = join(args.base_dir, args.images_train_dir) if args.images_train_dir else config_train_images_dir
     train_output_path = join(args.base_dir, args.output_train_tfrecord) if args.output_train_tfrecord else config['pipeline_config']['train_record_path']
 
-    create_tf_record(train_csv_filepath, train_images_dir, train_output_path)
+    create_tf_record(train_csv_filepath, train_images_dir, train_output_path, labels_list)
 
     if not (args.only_train):
         test_csv_filepath = join(args.base_dir, args.input_test_csv) if args.input_test_csv else config['pipeline_config']['input_test_csv']
         test_images_dir = join(args.base_dir, args.images_test_dir) if args.images_test_dir else config['pipeline_config']['input_test_img_folder']
         test_output_path = join(args.base_dir, args.output_test_tfrecord) if args.output_test_tfrecord else config['pipeline_config']['test_record_path']
 
-        create_tf_record(test_csv_filepath, test_images_dir, test_output_path)
+        create_tf_record(test_csv_filepath, test_images_dir, test_output_path, labels_list)

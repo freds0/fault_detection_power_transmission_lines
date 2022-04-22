@@ -8,7 +8,8 @@ pipeline_config:
     train_record_path: "data/furnas_dataset_v0.07/train.record"
     test_record_path: "data/furnas_dataset_v0.07/test.record"
     labelmap_path: "data/furnas_dataset_v0.07/data/label_map.pbtxt"
-    num_classes: 11
+    image_extension: "jpg"
+    classes_names: "['baliser_ok', 'baliser_aok', 'baliser_nok', 'insulator_ok', 'insulator_nok', 'bird_nest', 'stockbridge_ok', 'stockbridge_nok', 'spacer_ok', 'spacer_nok', 'insulator_unk']"
     # Model
     model_name: "ssd_mobilenet_v2_320x320"
     checkpoint_save_path: "checkpoints"

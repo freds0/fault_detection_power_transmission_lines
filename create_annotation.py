@@ -13,6 +13,7 @@ def execute_inference():
     parser.add_argument('-y', '--yaml', default='config/parameters.yaml', help='Config file YAML format')
     parser.add_argument('-c', '--checkpoint_dir', help='Folder to load exported checkpoint.')
     parser.add_argument('-i', '--image_path', help='Input jpg images foder.')
+    parser.add_argument('-e', '--image_extension', help='Image file extension: jpg or jpeg')
     parser.add_argument('-l', '--label_map',  help='Path to pbtxt file')
     parser.add_argument('-o', '--output_dir', default='./output_annotate', help='Output folder')
     args = parser.parse_args()
@@ -28,10 +29,11 @@ def execute_inference():
     model_path = args.checkpoint_dir if args.checkpoint_dir else join(config['pipeline_config']['checkpoint_save_path'], 'exported')
     label_map = args.label_map if args.label_map else config['pipeline_config']['labelmap_path']
     image_path = args.image_path if args.image_path else config['pipeline_config']['input_test_img_folder']
+    img_extension = args.image_extension if args.image_extension else config['pipeline_config']['image_extension']
 
     print("Loading model...")
     detection_model = load_custom_model(model_path)
-    image_files = join(image_path, '*.jpg')
+    image_files = join(image_path, f'*.{img_extension}')
     makedirs(args.output_dir, exist_ok=True)
 
     print("Executing auto-annotation...")

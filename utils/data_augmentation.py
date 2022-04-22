@@ -193,7 +193,7 @@ def define_augmentations(config):
     return seq
 
 
-def aug_image(filename: str, df: pd.DataFrame, config, folder: str, augmentations: int) -> (list, list):
+def aug_image(filename: str, df: pd.DataFrame, config, folder: str, augmentations: int, img_ext: str = 'jpg') -> (list, list):
     """
     This function will:
      1. load the image based on the filename from the given folder
@@ -204,6 +204,7 @@ def aug_image(filename: str, df: pd.DataFrame, config, folder: str, augmentation
     :param df: DataFrame that stores all given bounding box information to each image
     :param folder: defines where to find the image
     :param augmentations: defines the number of augmentations to be done
+    :img_ext: image extension, jpg or jpeg.
     :return: list of augmented images, list of bouding_boxes for each augmented image
     """
     # load image
@@ -233,7 +234,7 @@ def aug_image(filename: str, df: pd.DataFrame, config, folder: str, augmentation
 
 
 def save_augmentations(images: list, bbs: list, df: pd.DataFrame, filename: str, folder: str, resize: bool = False,
-                       shape: (int, int) = (None, None)) -> pd.DataFrame:
+                       shape: (int, int) = (None, None), img_ext: str = 'jpg') -> pd.DataFrame:
     """
     This function will:
     1. store each augmented image in a new folder
@@ -245,14 +246,15 @@ def save_augmentations(images: list, bbs: list, df: pd.DataFrame, filename: str,
     :param folder: str object that defines the path to the output folder for the augmentated images
     :param resize: defines if the image should be resized or not after the augmentation
     :param shape: if the image will be reshaped, it will be reshaped into this shape
+    :img_ext: image extension, jpg or jpeg.
     :return: DataFrame
     """
 
     # iterate over the images
     for [i, img_a], bb_a in zip(enumerate(images), bbs):
         # define new name
-        new_filename = os.path.basename(filename).replace('.jpg', '')
-        aug_img_name = f'{new_filename}_data_aug{i}.jpg'
+        new_filename = os.path.basename(filename).replace(f'.{img_ext}', '')
+        aug_img_name = f'{new_filename}_data_aug{i}.{img_ext}'
         # check if image should be resized
         org_shape = (None, None)
         if resize:

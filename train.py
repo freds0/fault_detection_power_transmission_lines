@@ -6,7 +6,7 @@ import subprocess
 import yaml
 import tempfile
 from os.path import join, isdir
-from os import rename
+#from os import rename
 
 def get_last_checkpoint(checkpoints_folder):
     if not isdir(checkpoints_folder):

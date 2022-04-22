@@ -1,27 +1,10 @@
 
-def class_label_to_int(row_label):
-    if row_label == 'baliser_ok':
-        return 1
-    elif row_label == 'baliser_aok':
-        return 2
-    elif row_label == 'baliser_nok':
-        return 3
-    elif row_label == 'insulator_ok':
-        return 4
-    elif row_label == 'insulator_nok':
-        return 5
-    elif row_label == 'bird_nest':
-        return 6
-    elif row_label == 'stockbridge_ok':
-        return 7
-    elif row_label == 'stockbridge_nok':
-        return 8
-    elif row_label == 'spacer_ok':
-        return 9
-    elif row_label == 'spacer_nok':
-        return 10
-    elif row_label == 'insulator_unk':
-        return 11
-    else:
+def class_label_to_int(row_label, labels_list):
+
+    if row_label not in labels_list:
         print("Error: " + row_label)
-        None
+        return None
+
+    for index, class_label in enumerate(labels_list):
+        if row_label == class_label:
+            return index + 1 # Index must start with 1

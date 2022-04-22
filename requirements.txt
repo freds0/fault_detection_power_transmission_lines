@@ -1,4 +1,4 @@
-wget
-pyyaml
-imgaug
-pascal_voc_writer
+wget==3.2
+pyyaml==5.4.1
+imgaug==0.4.0
+pascal_voc_writer==0.1.4
