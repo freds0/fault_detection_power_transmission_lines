@@ -95,7 +95,7 @@ $ docker run --name tf2od -p 8888:8888 -d tensorflow_object_detection
 
 ## Download Dataset
 
-After downloading the **Furnas Dataset**, unzip the dataset in the "data" folder.  You can verify that it has the following organization format:
+After downloading the [Furnas Dataset](https://drive.google.com/file/d/1JfVxRV6C0vwLTBhW-C97fwj4gawraGHe/view), unzip the dataset in the "data" folder.  You can verify that it has the following organization format:
 
 ```
 ├─ furnas_dataset_v0.01/
